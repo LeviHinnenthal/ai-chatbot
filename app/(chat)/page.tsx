@@ -1,55 +1,41 @@
-import { cookies } from 'next/headers';
-
-import { Chat } from '@/components/chat';
-import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
-import { generateUUID } from '@/lib/utils';
-import { DataStreamHandler } from '@/components/data-stream-handler';
-import { auth } from '../(auth)/auth';
-import { redirect } from 'next/navigation';
-
-export default async function Page() {
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+import { MessageSquare, ImageIcon, History } from "lucide-react";
+import { auth } from "@/app/(auth)/auth";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import Overview from "@/components/home/overview";
+import HomeInput from "@/components/home/home-input";
+import HomeGreeting from "@/components/home/home-greeting";
+export default async function Home() {
+  // Obtener la sesión del usuario
   const session = await auth();
-
-  if (!session) {
-    redirect('/api/auth/guest');
-  }
-
-  const id = generateUUID();
-
-  const cookieStore = await cookies();
-  const modelIdFromCookie = cookieStore.get('chat-model');
-
-  if (!modelIdFromCookie) {
-    return (
-      <>
-        <Chat
-          key={id}
-          id={id}
-          initialMessages={[]}
-          initialChatModel={DEFAULT_CHAT_MODEL}
-          initialVisibilityType="private"
-          isReadonly={false}
-          session={session}
-          autoResume={false}
-        />
-        <DataStreamHandler />
-      </>
-    );
-  }
+  const user = session?.user;
 
   return (
-    <>
-      <Chat
-        key={id}
-        id={id}
-        initialMessages={[]}
-        initialChatModel={modelIdFromCookie.value}
-        initialVisibilityType="private"
-        isReadonly={false}
-        session={session}
-        autoResume={false}
-      />
-      <DataStreamHandler />
-    </>
+    <div className="flex gap-4">
+      <div className="container mx-4 sm:mx-auto sm:w-fit sm:p-4">
+        <HomeGreeting user={user} />
+
+        <HomeInput />
+
+        <div className="flex flex-col gap-2 justify-start mt-6 w-fit">
+          <p className="text-sm font-normal w-fit">Oder:</p>
+          <Button variant="default" className="w-fit">
+            <Link href="/projects/create">Neues Projekt anlegen</Link>
+          </Button>
+        </div>
+
+        <Overview />
+      </div>
+    </div>
   );
 }

@@ -1,21 +1,21 @@
-import { PreviewMessage, ThinkingMessage } from './message';
-import { Greeting } from './greeting';
-import { memo } from 'react';
-import type { Vote } from '@/lib/db/schema';
-import equal from 'fast-deep-equal';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import { motion } from 'framer-motion';
-import { useMessages } from '@/hooks/use-messages';
-import type { ChatMessage } from '@/lib/types';
-import { useDataStream } from './data-stream-provider';
+import { PreviewMessage, ThinkingMessage } from "./message";
+import { Greeting } from "./greeting";
+import { memo, useEffect, useState } from "react";
+import type { Vote } from "@/lib/db/schema";
+import equal from "fast-deep-equal";
+import type { UseChatHelpers } from "@ai-sdk/react";
+import { motion } from "framer-motion";
+import { useMessages } from "@/hooks/use-messages";
+import type { ChatMessage } from "@/lib/types";
+import { useDataStream } from "./data-stream-provider";
 
 interface MessagesProps {
   chatId: string;
-  status: UseChatHelpers<ChatMessage>['status'];
+  status: UseChatHelpers<ChatMessage>["status"];
   votes: Array<Vote> | undefined;
   messages: ChatMessage[];
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
-  regenerate: UseChatHelpers<ChatMessage>['regenerate'];
+  setMessages: UseChatHelpers<ChatMessage>["setMessages"];
+  regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   isArtifactVisible: boolean;
 }
@@ -41,7 +41,17 @@ function PureMessages({
   });
 
   useDataStream();
+  const [showThinking, setShowThinking] = useState(false);
 
+  useEffect(() => {
+    // Show "ThinkingMessage" when the last message is from the user
+    if (messages.length > 0 && messages[messages.length - 1].role === "user") {
+      // Give it a tiny delay to ensure it renders before streaming starts
+      setShowThinking(true);
+    } else {
+      setShowThinking(false);
+    }
+  }, [messages]);
   return (
     <div
       ref={messagesContainerRef}
@@ -54,7 +64,7 @@ function PureMessages({
           key={message.id}
           chatId={chatId}
           message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
+          isLoading={status === "streaming" && messages.length - 1 === index}
           vote={
             votes
               ? votes.find((vote) => vote.messageId === message.id)
@@ -69,9 +79,7 @@ function PureMessages({
         />
       ))}
 
-      {status === 'submitted' &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+      {showThinking && <ThinkingMessage />}
 
       <motion.div
         ref={messagesEndRef}

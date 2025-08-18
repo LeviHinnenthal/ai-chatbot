@@ -3,35 +3,39 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from 'ai';
-import { xai } from '@ai-sdk/xai';
-import {
-  artifactModel,
-  chatModel,
-  reasoningModel,
-  titleModel,
-} from './models.test';
+import { createAzure } from "@ai-sdk/azure";
+import { openai } from "@ai-sdk/openai";
 import { isTestEnvironment } from '../constants';
 
-export const myProvider = isTestEnvironment
-  ? customProvider({
+
+export const azureProvider = createAzure({
+  apiKey: process.env.AZURE_API_KEY!,
+  baseURL: process.env.AZURE_RESOURCE_NAME,
+  fetch: async (url, options) => {
+    console.log("🔍 Request URL:", url);
+    console.log("📝 Request Options:", options);
+
+    const response = await fetch(url, options);
+
+    const clone = response.clone(); // Clone so we can read the body twice
+    const responseBody = await clone.text();
+    console.log("📩 Response Body:", responseBody);
+
+    return response;
+  },
+});
+
+export const myProvider = customProvider({
       languageModels: {
-        'chat-model': chatModel,
-        'chat-model-reasoning': reasoningModel,
-        'title-model': titleModel,
-        'artifact-model': artifactModel,
-      },
-    })
-  : customProvider({
-      languageModels: {
-        'chat-model': xai('grok-2-vision-1212'),
+        'chat-model': openai("gpt-4o"),
         'chat-model-reasoning': wrapLanguageModel({
-          model: xai('grok-3-mini-beta'),
+          model: azureProvider("gpt-5-mini"),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
+        'title-model': azureProvider("gpt-5-mini"),
+        'artifact-model': azureProvider("gpt-5-mini"),
       },
-      imageModels: {
-        'small-model': xai.imageModel('grok-2-image'),
-      },
+      // imageModels: {
+      //   'small-model': azureProvider("gpt-5-mini"),
+      // },
     });
