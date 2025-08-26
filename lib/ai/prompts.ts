@@ -55,7 +55,7 @@ export const systemPrompt = ({
   requestHints,
 }: {
   selectedChatModel: string;
-  requestHints: RequestHints;
+  requestHints?: RequestHints;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
 

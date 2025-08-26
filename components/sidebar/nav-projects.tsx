@@ -23,7 +23,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import NewProjectDialog from "./new-project-dialog";
-import Projects from "./projects";
+// import Projects from "./projects";
 
 export function NavProjects() {
   const { isMobile } = useSidebar();
@@ -34,9 +34,7 @@ export function NavProjects() {
         Projekte
         <NewProjectDialog />
       </SidebarGroupLabel>
-      <SidebarMenu>
-        <Projects />
-      </SidebarMenu>
+      <SidebarMenu>{/* <Projects /> */}</SidebarMenu>
     </SidebarGroup>
   );
 }

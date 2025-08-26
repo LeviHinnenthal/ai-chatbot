@@ -168,3 +168,16 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const todo = pgTable('Todo', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  text: text('text').notNull(),
+  done: boolean('done').notNull().default(false),
+  userId: uuid('userId')
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+});
+
+export type Todo = InferSelectModel<typeof todo>;

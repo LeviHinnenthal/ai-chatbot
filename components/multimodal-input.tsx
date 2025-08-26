@@ -292,15 +292,8 @@ function PureMultimodalInput({
               <Paperclip size={16} />
             </PromptInputButton>
 
-            {/* Stop */}
-            {status === "submitted" && (
-              <PromptInputButton onClick={stop}>
-                <Square size={16} />
-              </PromptInputButton>
-            )}
-
             {/* Model Selector */}
-            {/* <PromptInputModelSelect onValueChange={setModel} value={model}>
+            <PromptInputModelSelect onValueChange={setModel} value={model}>
               <PromptInputModelSelectTrigger>
                 <PromptInputModelSelectValue />
               </PromptInputModelSelectTrigger>
@@ -311,16 +304,23 @@ function PureMultimodalInput({
                   </PromptInputModelSelectItem>
                 ))}
               </PromptInputModelSelectContent>
-            </PromptInputModelSelect> */}
+            </PromptInputModelSelect>
           </PromptInputTools>
 
+          {status === "submitted" || status === "streaming" ? (
+            <PromptInputButton onClick={stop}>
+              <Square size={16} />
+            </PromptInputButton>
+          ) : (
+            <PromptInputSubmit
+              disabled={!input || uploadQueue.length > 0}
+              status={status}
+            >
+              <Send size={16} />
+            </PromptInputSubmit>
+          )}
+
           {/* Submit */}
-          <PromptInputSubmit
-            disabled={!input || uploadQueue.length > 0}
-            status={status}
-          >
-            <Send size={16} />
-          </PromptInputSubmit>
         </PromptInputToolbar>
       </PromptInput>
     </div>

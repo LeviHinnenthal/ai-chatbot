@@ -227,6 +227,7 @@ export async function POST(request: Request) {
     }
   
     console.error('Unexpected error in POST /api/chat:', error);
+    // @ts-expect-error
     return new ChatSDKError('internal_server_error').toResponse();
   }
 }

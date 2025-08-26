@@ -9,7 +9,6 @@ import {
   Frame,
   GalleryVerticalEnd,
   Home,
-  Map,
   Menu,
   PieChart,
   Settings2,
@@ -21,7 +20,6 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { NavMain } from "@/components/sidebar/nav-main";
 import { NavHistory } from "@/components/sidebar/nav-history";
 import { NavUser } from "@/components/sidebar/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,

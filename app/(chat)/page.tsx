@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import Overview from "@/components/home/overview";
 import HomeInput from "@/components/home/home-input";
 import HomeGreeting from "@/components/home/home-greeting";
+import WidgetSidebar from "@/components/home/widget-sidebar";
 export default async function Home() {
   // Obtener la sesión del usuario
   const session = await auth();
@@ -36,6 +37,7 @@ export default async function Home() {
 
         <Overview />
       </div>
+      <WidgetSidebar user={user} />
     </div>
   );
 }

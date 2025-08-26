@@ -24,6 +24,8 @@ import {
   suggestion,
   message,
   vote,
+  todo,
+  type Todo,
   type DBMessage,
   type Chat,
   stream,
@@ -63,6 +65,82 @@ export async function createUser(email: string, password: string) {
   }
 }
 
+// Todo Queries
+export async function getTodosByUserId(userId: string) {
+  try {
+    return await db
+      .select()
+      .from(todo)
+      .where(eq(todo.userId, userId))
+      .orderBy(desc(todo.createdAt));
+  } catch (error) {
+    console.error('Failed to fetch todos', error);
+    throw error;
+  }
+}
+
+export async function createTodo({
+  text,
+  userId,
+}: {
+  text: string;
+  userId: string;
+}) {
+  try {
+    const [newTodo] = await db
+      .insert(todo)
+      .values({
+        text,
+        userId,
+        done: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return newTodo;
+  } catch (error) {
+    console.error('Failed to create todo', error);
+    throw error;
+  }
+}
+
+export async function updateTodo({
+  id,
+  done,
+  text,
+}: {
+  id: string;
+  done?: boolean;
+  text?: string;
+}) {
+  try {
+    const updates: { done?: boolean; text?: string; updatedAt: Date } = {
+      updatedAt: new Date(),
+    };
+    if (done !== undefined) updates.done = done;
+    if (text !== undefined) updates.text = text;
+
+    const [updatedTodo] = await db
+      .update(todo)
+      .set(updates)
+      .where(eq(todo.id, id))
+      .returning();
+    return updatedTodo;
+  } catch (error) {
+    console.error('Failed to update todo', error);
+    throw error;
+  }
+}
+
+export async function deleteTodo({ id }: { id: string }) {
+  try {
+    await db.delete(todo).where(eq(todo.id, id));
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete todo', error);
+    throw error;
+  }
+}
 
 export async function saveChat({
   id,

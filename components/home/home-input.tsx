@@ -26,7 +26,7 @@ export default function HomeInput({ projectId }: { projectId?: string }) {
     }
   }
 
-  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -54,11 +54,10 @@ export default function HomeInput({ projectId }: { projectId?: string }) {
 
         {/* multiline input */}
         <input
-          rows={1}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Send a message to start a new chat inside of this project…"
+          placeholder="Send a message to start a new chat…"
           className="flex-1 border-0 bg-transparent w-full p-0 m-0 text-sm focus:outline-none placeholder:text-muted-foreground"
         />
       </div>

@@ -8,7 +8,7 @@ import { Trash2, Plus, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Todo } from "@/lib/db/schema";
 import type { User } from "next-auth";
-import { useWidgetState } from "@/lib/hooks/use-widget-state";
+import { useWidgetState } from "@/hooks/use-widget-state";
 
 interface ToDosWidgetProps {
   user: User | undefined;

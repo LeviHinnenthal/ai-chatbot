@@ -2,7 +2,8 @@
 import React from "react";
 import { Card, CardTitle, CardHeader, CardContent } from "../ui/card";
 import { SuggestedActions } from "../suggested-actions";
-import { useWidgetState } from "@/lib/hooks/use-widget-state";
+import { useWidgetState } from "@/hooks/use-widget-state";
+
 import { Button } from "../ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -33,7 +34,7 @@ const InspirationWidget = () => {
       </CardHeader>
       {!isMinimized && (
         <CardContent className="p-4 pt-0">
-          <SuggestedActions orientation="vertical" />
+          {/* <SuggestedActions orientation="vertical" /> */}
         </CardContent>
       )}
     </Card>

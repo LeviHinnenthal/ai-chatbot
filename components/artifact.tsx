@@ -332,7 +332,7 @@ function PureArtifact({
                     setAttachments={setAttachments}
                     messages={messages}
                     sendMessage={sendMessage}
-                    className="bg-background dark:bg-muted"
+                    // className="bg-background dark:bg-muted"
                     setMessages={setMessages}
                     selectedVisibilityType={selectedVisibilityType}
                   />
