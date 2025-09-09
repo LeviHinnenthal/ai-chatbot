@@ -6,10 +6,10 @@ const textPartSchema = z.object({
 });
 
 const filePartSchema = z.object({
-  type: z.enum(['file']),
-  mediaType: z.enum(['image/jpeg', 'image/png']),
+  type: z.literal("file"),
+  mediaType: z.string(), // accept PDFs
   name: z.string().min(1).max(100),
-  url: z.string().url(),
+  data: z.instanceof(Uint8Array),
 });
 
 const partSchema = z.union([textPartSchema, filePartSchema]);

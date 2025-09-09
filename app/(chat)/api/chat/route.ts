@@ -38,6 +38,7 @@ import { ChatSDKError } from '@/lib/errors';
 import type { ChatMessage } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
+// import { generateImageTool } from "@/lib/ai/tools/generate-image";
 
 export const maxDuration = 60;
 const model = azureProvider("gpt-5-mini");

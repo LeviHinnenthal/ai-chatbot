@@ -31,6 +31,7 @@ export function Chat({
   isReadonly,
   session,
   autoResume,
+  apiEndpoint,
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -39,6 +40,7 @@ export function Chat({
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
+  apiEndpoint: string;
 }) {
   const { visibilityType } = useChatVisibility({
     chatId: id,
@@ -64,7 +66,7 @@ export function Chat({
     experimental_throttle: 100,
     generateId: generateUUID,
     transport: new DefaultChatTransport({
-      api: "/api/chat",
+      api: apiEndpoint,
       fetch: fetchWithErrorHandlers,
       prepareSendMessagesRequest({ messages, id, body }) {
         return {

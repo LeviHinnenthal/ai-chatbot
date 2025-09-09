@@ -1,3 +1,4 @@
+// app/image/[id]/page.tsx
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
@@ -7,6 +8,7 @@ import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { DataStreamHandler } from "@/components/data-stream-handler";
 import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
+import type { ChatMessage } from "@/lib/types";
 
 interface PageProps {
   params?: { id?: string };
@@ -19,40 +21,36 @@ export default async function Page({ params }: PageProps) {
     redirect("/login");
   }
 
+  // Define a default model for image generation if needed
+  const DEFAULT_IMAGE_MODEL = "gpt-4o";
+
   const cookieStore = await cookies();
-  const chatModelFromCookie = cookieStore.get("chat-model");
+  const imageModelFromCookie = cookieStore.get("image-model");
 
   // If no id is provided -> create a new chat
   if (!params?.id) {
     const id = generateUUID();
-
     return (
       <>
         <Chat
           key={id}
           id={id}
           initialMessages={[]}
-          initialChatModel={chatModelFromCookie?.value ?? DEFAULT_CHAT_MODEL}
+          initialChatModel={imageModelFromCookie?.value ?? DEFAULT_IMAGE_MODEL}
           initialVisibilityType="private"
           isReadonly={false}
           session={session}
           autoResume={false}
-          apiEndpoint="/api/chat"
+          apiEndpoint="/api/image" // <-- Pass the image generation endpoint
         />
         <DataStreamHandler />
       </>
     );
   }
 
-  // Existing chat logic
+  // Existing chat logic (same as the text page)
   const { id } = params;
-  // const chat = await getChatById({ id });
-
-  // Determine chatId
-  const chatId = params?.id?.[0] ?? generateUUID();
-
-  // Load existing chat if any
-  const chat = params?.id ? await getChatById({ id: chatId }) : null;
+  const chat = await getChatById({ id });
 
   if (!chat) {
     notFound();
@@ -62,7 +60,8 @@ export default async function Page({ params }: PageProps) {
     notFound();
   }
 
-  const messagesFromDb = chat ? await getMessagesByChatId({ id: chatId }) : [];
+  const messagesFromDb = await getMessagesByChatId({ id });
+  // The UI messages need to be formatted correctly for the image chat
   const uiMessages = convertToUIMessages(messagesFromDb);
 
   return (
@@ -71,12 +70,12 @@ export default async function Page({ params }: PageProps) {
         key={id}
         id={chat.id}
         initialMessages={uiMessages}
-        initialChatModel={chatModelFromCookie?.value ?? DEFAULT_CHAT_MODEL}
+        initialChatModel={imageModelFromCookie?.value ?? DEFAULT_IMAGE_MODEL}
         initialVisibilityType={chat.visibility}
         isReadonly={session.user?.id !== chat.userId}
         session={session}
         autoResume={true}
-        apiEndpoint="/api/chat"
+        apiEndpoint="/api/image" // <-- Pass the image generation endpoint
       />
       <DataStreamHandler />
     </>

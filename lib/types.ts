@@ -8,7 +8,8 @@ import type { InferUITool, UIMessage } from 'ai';
 import type { ArtifactKind } from '@/components/artifact';
 import type { Suggestion } from './db/schema';
 
-export type DataPart = { type: 'append-message'; message: string };
+// This is no longer the correct way to stream data in AI SDK v5
+// export type DataPart = { type: 'append-message'; message: string };
 
 export const messageMetadataSchema = z.object({
   createdAt: z.string(),
@@ -30,9 +31,16 @@ export type ChatTools = {
   requestSuggestions: requestSuggestionsTool;
 };
 
+// Define the shape of your custom image data part
+export type ImagePart = {
+  id: string; // A unique ID for the part
+  image: string; // The base64 image string
+  prompt?: string; // Optional prompt for the alt text
+};
+
 export type CustomUIDataTypes = {
   textDelta: string;
-  imageDelta: string;
+  image: ImagePart; // <-- Added the new image data type here
   sheetDelta: string;
   codeDelta: string;
   suggestion: Suggestion;
@@ -42,6 +50,7 @@ export type CustomUIDataTypes = {
   kind: ArtifactKind;
   clear: null;
   finish: null;
+  apiEndpoint: string;
 };
 
 export type ChatMessage = UIMessage<

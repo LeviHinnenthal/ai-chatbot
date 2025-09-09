@@ -27,7 +27,7 @@ export const azureProvider = createAzure({
 
 export const myProvider = customProvider({
       languageModels: {
-        'chat-model': openai("gpt-4o"),
+        'chat-model': azureProvider("gpt-5-mini"),
         'chat-model-reasoning': wrapLanguageModel({
           model: azureProvider("gpt-5-mini"),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
