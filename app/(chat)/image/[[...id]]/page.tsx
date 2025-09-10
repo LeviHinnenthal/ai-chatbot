@@ -1,86 +1,53 @@
 "use client";
+import { useState } from "react";
 
-import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
-import Image from "next/image";
-import { type FormEvent, useState } from "react";
-import type { ChatTools } from "../../api/image/routeNoSdk";
+export default function ImageGenerator() {
+  const [prompt, setPrompt] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [loading, setLoading] = useState(false);
 
-type ChatMessage = UIMessage<never, never, ChatTools>;
+  const handleGenerate = async () => {
+    if (!prompt) return;
+    setLoading(true);
 
-export default function Chat() {
-  const [input, setInput] = useState("");
-
-  const { messages, sendMessage } = useChat<ChatMessage>({
-    transport: new DefaultChatTransport({
-      api: "/api/image",
-    }),
-  });
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(event.target.value);
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    sendMessage({
-      parts: [{ type: "text", text: input }],
-    });
-
-    setInput("");
+    try {
+      const res = await fetch("/api/image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      setImageUrl(data.imageUrl);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate image.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      <div className="space-y-4">
-        {messages.map((message) => (
-          <div key={message.id} className="whitespace-pre-wrap">
-            <div key={message.id}>
-              <div className="font-bold">{message.role}</div>
-              {message.parts.map((part, partIndex) => {
-                const { type } = part;
+    <div className="flex flex-col items-center gap-4">
+      <input
+        type="text"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter your prompt..."
+        className="border p-2 rounded w-80"
+      />
+      <button
+        onClick={handleGenerate}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+        disabled={loading}
+      >
+        {loading ? "Generating..." : "Generate Image"}
+      </button>
 
-                if (type === "text") {
-                  return (
-                    <div key={`${message.id}-part-${partIndex}`}>
-                      {part.text}
-                    </div>
-                  );
-                }
-
-                if (
-                  type === "tool-generateImage" &&
-                  part.state === "output-available"
-                ) {
-                  console.log(
-                    "Image src:",
-                    `data:image/jpeg;base64,${part.output.image}`
-                  );
-                  return (
-                    <img
-                      key={part.toolCallId}
-                      src={`data:image/jpeg;base64,${part.output.image}`}
-                      alt={part.input.prompt}
-                      width={400}
-                      height={400}
-                    />
-                  );
-                }
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-          value={input}
-          placeholder="Say something..."
-          onChange={handleInputChange}
-        />
-      </form>
+      {imageUrl && (
+        <div className="mt-4">
+          <img src={imageUrl} alt="Generated" className="rounded shadow" />
+        </div>
+      )}
     </div>
   );
 }

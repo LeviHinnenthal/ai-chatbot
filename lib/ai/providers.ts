@@ -2,40 +2,58 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
-} from 'ai';
+} from "ai";
 import { createAzure } from "@ai-sdk/azure";
 import { openai } from "@ai-sdk/openai";
-import { isTestEnvironment } from '../constants';
-
+import { isTestEnvironment } from "../constants";
 
 export const azureProvider = createAzure({
   apiKey: process.env.AZURE_API_KEY!,
   baseURL: process.env.AZURE_RESOURCE_NAME,
   fetch: async (url, options) => {
-    console.log("🔍 Request URL:", url);
-    console.log("📝 Request Options:", options);
+    // console.log("🔍 Request URL:", url);
+    // console.log("📝 Request Options:", options);
 
     const response = await fetch(url, options);
 
     const clone = response.clone(); // Clone so we can read the body twice
     const responseBody = await clone.text();
-    console.log("📩 Response Body:", responseBody);
+    // console.log("📩 Response Body:", responseBody);
+
+    return response;
+  },
+});
+
+export const azureProviderImage = createAzure({
+  apiKey: process.env.IMAGE_AZURE_API_KEY!,
+  baseURL: process.env.IMAGE_AZURE_ENDPOINT,
+  apiVersion: "2025-04-01-preview",
+  useDeploymentBasedUrls: true,
+  fetch: async (url, options) => {
+    // console.log("🔍 Request URL:", url);
+    // console.log("📝 Request Options:", options);
+
+    const response = await fetch(url, options);
+
+    const clone = response.clone(); // Clone so we can read the body twice
+    const responseBody = await clone.text();
+    // console.log("📩 Response Body:", responseBody);
 
     return response;
   },
 });
 
 export const myProvider = customProvider({
-      languageModels: {
-        'chat-model': azureProvider("gpt-5-mini"),
-        'chat-model-reasoning': wrapLanguageModel({
-          model: azureProvider("gpt-5-mini"),
-          middleware: extractReasoningMiddleware({ tagName: 'think' }),
-        }),
-        'title-model': azureProvider("gpt-5-mini"),
-        'artifact-model': azureProvider("gpt-5-mini"),
-      },
-      // imageModels: {
-      //   'small-model': azureProvider("gpt-5-mini"),
-      // },
-    });
+  languageModels: {
+    "chat-model": azureProvider("gpt-5-mini"),
+    "chat-model-reasoning": wrapLanguageModel({
+      model: azureProvider("gpt-5-mini"),
+      middleware: extractReasoningMiddleware({ tagName: "think" }),
+    }),
+    "title-model": azureProvider("gpt-5-mini"),
+    "artifact-model": azureProvider("gpt-5-mini"),
+  },
+  // imageModels: {
+  //   'small-model': azureProvider("gpt-5-mini"),
+  // },
+});

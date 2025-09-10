@@ -12,7 +12,12 @@ interface PageProps {
   params?: { id?: string };
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ id?: string[] }>;
+}) {
+  const resolvedParams = await params;
   const session = await auth();
 
   if (!session) {
@@ -23,7 +28,7 @@ export default async function Page({ params }: PageProps) {
   const chatModelFromCookie = cookieStore.get("chat-model");
 
   // If no id is provided -> create a new chat
-  if (!params?.id) {
+  if (!resolvedParams?.id) {
     const id = generateUUID();
 
     return (
@@ -45,14 +50,14 @@ export default async function Page({ params }: PageProps) {
   }
 
   // Existing chat logic
-  const { id } = params;
+  const { id } = resolvedParams;
   // const chat = await getChatById({ id });
 
   // Determine chatId
-  const chatId = params?.id?.[0] ?? generateUUID();
+  const chatId = id?.[0] ?? generateUUID();
 
   // Load existing chat if any
-  const chat = params?.id ? await getChatById({ id: chatId }) : null;
+  const chat = id ? await getChatById({ id: chatId }) : null;
 
   if (!chat) {
     notFound();

@@ -1,61 +1,28 @@
-import { tool } from "ai";
+export async function generateImageTool({
+  input,
+}: {
+  input: { prompt: string };
+}) {
+  console.log("=== generateImageTool ===");
+  console.log("Calling /api/image with input:", input);
 
-export const generateImageTool = {
-  name: "generateImage",
-  description: "Generate an image from a text prompt",
-  parameters: {
-    type: "object",
-    properties: {
-      prompt: {
-        type: "string",
-        description: "The description of the image to generate",
-      },
-      size: {
-        type: "string",
-        enum: ["256x256", "512x512", "1024x1024"],
-        description: "Image size",
-      },
-      format: {
-        type: "string",
-        enum: ["jpeg", "png"],
-        description: "Output format",
-      },
-    },
-    required: ["prompt"],
-    additionalProperties: false,
-  },
-  async execute({ prompt, size = "1024x1024", format = "jpeg" }) {
-    const AZURE_AI_STUDIO_ENDPOINT = "https://ki-studio.services.ai.azure.com";
-    const DEPLOYMENT_NAME = "FLUX-1.1-pro";
-    const API_VERSION = "2025-04-01-preview";
-    const API_KEY = process.env.IMAGE_AZURE_API_KEY!;
+  console.log("Sending prompt:", input.prompt);
+  const res = await fetch(`http://localhost:3000/api/image`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: input.prompt }),
+    cache: "no-store", // ensures fresh request
+    credentials: "omit", // <-- important
+  });
 
-    const url = `${AZURE_AI_STUDIO_ENDPOINT}/openai/deployments/${DEPLOYMENT_NAME}/images/generations?api-version=${API_VERSION}`;
+  console.log("Response status:", res.status);
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
-      },
-      body: JSON.stringify({ prompt, n: 1, size, output_format: format }),
-    });
+  const data = await res.json();
+  console.log("Data received from /api/image:", data);
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Image generation failed: ${text}`);
-    }
-
-    const buffer = await res.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString("base64");
-
-    return {
-      type: "tool-generateImage",
-      state: "output-available",
-      toolCallId: crypto.randomUUID(),
-      input: { prompt },
-      output: { image: base64 },
-    };
-  },
-};
-
+  if (!res.ok || !data.imageUrl) {
+    throw new Error("Image generation failed");
+  }
+  console.log("Tool returning imageUrl:", data.imageUrl);
+  return { imageUrl: data.imageUrl };
+}

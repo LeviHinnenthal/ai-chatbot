@@ -323,39 +323,22 @@ const PurePreviewMessage = ({
                 }
               }
 
-              if (type === "tool-generateImage") {
-                const { toolCallId, state, input, output } = part;
-
-                if (state === "input-available") {
-                  // While waiting for image output, show a placeholder / skeleton
+              if (part.type === "tool-generateImage") {
+                if (part.state === "input-available") {
                   return (
-                    <div
-                      key={toolCallId}
-                      className="w-64 h-64 bg-muted animate-pulse rounded-lg flex items-center justify-center text-sm text-muted-foreground"
-                    >
-                      Generating image…
+                    <div key={`message-${message.id}-part-${index}-image`}>
+                      Generating image...
                     </div>
                   );
                 }
-
-                if (state === "output-available") {
-                  if ("error" in output) {
-                    return (
-                      <div
-                        key={toolCallId}
-                        className="text-red-500 p-2 border rounded"
-                      >
-                        Error: {String(output.error)}
-                      </div>
-                    );
-                  }
-
+                if (part.state === "output-available") {
                   return (
                     <img
-                      key={toolCallId}
-                      src={`data:image/jpeg;base64,${output.image}`}
-                      alt={input?.prompt ?? "Generated image"}
-                      className="rounded-lg shadow-md max-w-full mt-2"
+                      key={`message-${message.id}-part-${index}-image`}
+                      src={part.output.imageUrl}
+                      alt={part.input.prompt}
+                      height={400}
+                      width={400}
                     />
                   );
                 }

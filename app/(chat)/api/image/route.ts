@@ -1,68 +1,62 @@
-// app/api/image/route.ts
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { auth, type UserType } from "@/app/(auth)/auth";
+import { ChatSDKError } from "@/lib/errors";
 
-export const dynamic = "force-dynamic";
+const IMAGE_AZURE_ENDPOINT = process.env.IMAGE_AZURE_ENDPOINT!;
 
 export async function POST(req: NextRequest) {
-  const { messages } = await req.json();
-  const lastMessage = messages?.[messages.length - 1];
-
-  if (!lastMessage || !lastMessage.parts?.length) {
-    return new Response(JSON.stringify({ error: "Invalid request body" }), { status: 400 });
-  }
-
-  const prompt = lastMessage.parts[0].text;
-  if (!prompt) return new Response(JSON.stringify({ error: "Missing prompt" }), { status: 400 });
-
-  const AZURE_AI_STUDIO_ENDPOINT = "https://ki-studio.services.ai.azure.com";
-  const DEPLOYMENT_NAME = "FLUX-1.1-pro";
-  const API_VERSION = "2025-04-01-preview";
-  const API_KEY = process.env.IMAGE_AZURE_API_KEY!;
-
-  const url = `${AZURE_AI_STUDIO_ENDPOINT}/openai/deployments/${DEPLOYMENT_NAME}/images/generations?api-version=${API_VERSION}`;
-
   try {
-    const response = await fetch(url, {
+    const { prompt } = await req.json();
+    if (!prompt)
+      return NextResponse.json(
+        { error: "Prompt is required" },
+        { status: 400 }
+      );
+
+    const response = await fetch(IMAGE_AZURE_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${API_KEY}`,
+        "api-key": process.env.IMAGE_AZURE_API_KEY!,
       },
       body: JSON.stringify({
         prompt,
-        n: 1,
         size: "1024x1024",
-        output_format: "jpeg",
+        n: 1,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Flux API error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: errorText }), { status: response.status });
+    const data = await response.json();
+    console.log("=== /api/image route ===");
+    console.log("Prompt:", prompt);
+    console.log("Azure response:", data);
+
+    const b64 = data?.data?.[0]?.b64_json;
+    console.log("Base64 length:", b64?.length ?? "undefined");
+
+    if (!b64) {
+      console.error("Azure failed to return Base64:", data);
+      return NextResponse.json(
+        { error: "Azure failed", details: data },
+        { status: 500 }
+      );
     }
 
-    const data = await response.json();
-    const base64Image = data.data[0].b64_json;
+    // Convert Base64 to data URL
+    const imageUrl = `data:image/png;base64,${b64}`;
 
-    return new Response(
-      JSON.stringify({
-        role: "assistant",
-        id: crypto.randomUUID(),
-        parts: [
-          {
-            type: "tool-generateImage",
-            state: "output-available",
-            toolCallId: crypto.randomUUID(),
-            input: { prompt },
-            output: { image: base64Image },
-          },
-        ],
-      }),
-      { headers: { "Content-Type": "application/json" } }
-    );
+    // 👇 Add a debug log here
+    console.log("🟢 Returning from /api/image:", {
+      length: imageUrl.length,
+      preview: imageUrl.substring(0, 100) + "...",
+    });
+
+    return NextResponse.json({ imageUrl });
   } catch (err: any) {
-    console.error("Image generation failed:", err);
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    console.error(err);
+    return NextResponse.json(
+      { error: "Server error", details: err.message },
+      { status: 500 }
+    );
   }
 }
